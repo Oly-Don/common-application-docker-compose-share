@@ -1,0 +1,23 @@
+FROM httpd
+
+RUN useradd ftp && \
+	mkdir -p  /etc/httpd/logs && \
+	touch /etc/httpd/logs/error.log && \
+	sed -i 's/User daemon/User ftp/g' /usr/local/apache2/conf/httpd.conf && \
+	sed -i 's/Group daemon/Group ftp/g' /usr/local/apache2/conf/httpd.conf && \ 
+	sed -i 's/Listen 80/Listen 20020/g' /usr/local/apache2/conf/httpd.conf && \
+	sed -i '1a\ServerName 192.168.99.100:20020' /usr/local/apache2/conf/httpd.conf && \
+	sed -i 's/ErrorLog \/proc\/self\/fd\/2/ErrorLog \/etc\/httpd\/logs\/error.log/g' /usr/local/apache2/conf/httpd.conf
+EXPOSE  20020
+
+#ServerRoot "/usr/local/apache2"
+#Listen 80
+#User daemon
+#Group daemon
+#ServerAdmin you@example.com
+#DocumentRoot "/usr/local/apache2/htdocs"
+#ErrorLog /proc/self/fd/2
+#LogLevel warn
+#Include conf/extra/proxy-html.conf
+#SSLRandomSeed startup builtin
+#SSLRandomSeed connect builtin

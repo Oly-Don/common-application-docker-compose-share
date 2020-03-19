@@ -1,0 +1,36 @@
+1.nginx服务配置文件中开启桩
+
+server {
+	listen       80;
+	server_name  localhost;
+
+	location /nginx_status {
+		stub_status on;
+		access_log off;
+		allow 127.0.0.1;
+		allow 192.168.30.0/24;
+		## 加上容器ip,如 allow 127.10.0.1;
+		deny all;
+	}
+}
+
+nginx重载配置文件指令： nginx -t && nginx -s reload
+
+2.nginx服务器上添加zabbix-agent nginx配置文件
+/etc/zabbix/zabbix_agentd.d/userparameter_nginx.conf
+
+3.nginx服务器上准备脚本
+mkdir -p /etc/zabbix/scripts
+#复制脚本文件到 /etc/zabbix/scripts/nginxs.sh
+#脚本赋权
+chmod a+x /etc/zabbix/scripts/nginx.sh
+#重启zabbix-agent
+service zabbix-agent restart
+
+4.zabbix-server服务器上调试
+yum install -y zabbix-get
+zabbix_get -s 127.0.0.1 -k 'nginx.status[accepts]'   ##agent_ip_address 修改成nginx的实际内网ip
+
+5.最后在zabbix-server上导入模板文件。zbx_export_templates.xml
+
+6.最后在zabbix-server上为nginx主机启用Nginx模板。

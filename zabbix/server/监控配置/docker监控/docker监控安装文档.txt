@@ -1,0 +1,79 @@
+======================================第一种方式监控：使用zabbix-agent客户端，共八步======================================
+1.编译文件
+# 如有现成zabbix_module_docker.so 文件，可忽略第一步。注意zabbix-server版本
+yum install -y wget autoconf automake gcc git pcre-devel
+##4.2.1 为对应zabbix-server版本
+git clone -b 4.2.1 --depth 1 https://github.com/zabbix/zabbix.git /usr/src/zabbix
+cd /usr/src/zabbix
+./bootstrap.sh
+./configure --enable-agent
+mkdir src/modules/zabbix_module_docker
+cd src/modules/zabbix_module_docker
+wget https://raw.githubusercontent.com/monitoringartist/zabbix-docker-monitoring/master/src/modules/zabbix_module_docker/zabbix_module_docker.c
+wget https://raw.githubusercontent.com/monitoringartist/zabbix-docker-monitoring/master/src/modules/zabbix_module_docker/Makefile
+make
+##最后会生成文件：/usr/src/zabbix/src/modules/zabbix_module_docker/zabbix_module_docker.so
+
+2.上传编译后文件:
+mkdir -p /usr/src/zabbix/src/modules/zabbix_module_docker/
+cd /usr/src/zabbix/src/modules/zabbix_module_docker/
+rz zabbix_module_docker.so
+chmod 777 /usr/src/zabbix/src/modules/zabbix_module_docker/zabbix_module_docker.so
+  
+3.zabbix用户赋权
+usermod -aG docker zabbix
+4.设置zabbix-agent
+	vi /etc/zabbix/zabbix_agentd.conf
+##尾部添加
+LoadModulePath=/usr/src/zabbix/src/modules/zabbix_module_docker
+LoadModule=zabbix_module_docker.so
+DebugLevel=4
+		
+5.重启zabbix-agent
+service zabbix-agent restart
+
+6.最后在zabbix-server上导入模板文件：Zabbix-Template-App-Docker.xml
+
+7.最后在zabbix-server上为主机启用模板。
+
+8.（可忽略）最后等五分钟后，在主页的最新数据中心查看Docker的监控数据。
+======================================结束======================================
+
+
+
+====================（废弃）第二种方式监控： 使用docker的zabbix-agent容器======================================
+1.准备文件
+最终文件:
+mkdir -p /usr/src/zabbix/src/modules/zabbix_module_docker/
+cd /usr/src/zabbix/src/modules/zabbix_module_docker/
+rz    ##上传文件zabbix_module_docker.so
+chmod 777 /usr/src/zabbix/src/modules/zabbix_module_docker/zabbix_module_docker.so
+  
+2.zabbix用户赋权
+usermod -aG docker zabbix
+
+3.运行docker容器
+样例（仅参考，不需运行）
+docker run \
+  --name=dockbix-agent-xxl \
+  --net=host \
+  --privileged \
+  -v /:/rootfs \
+  -v /var/run:/var/run \
+  --restart unless-stopped \
+  -e "ZA_Server=<ZABBIX SERVER IP/DNS NAME/IP RANGE>" \
+  -e "ZA_ServerActive=<ZABBIX SERVER IP/DNS NAME>" \
+  -d monitoringartist/dockbix-agent-xxl-limited:latest
+
+实例（需运行）
+docker run  --name=`hostname`  --net=host  --privileged  -v /:/rootfs   -v /var/run:/var/run  --restart unless-stopped  -e "ZA_Server=192.168.99.100"  -e "ZA_ServerActive=192.168.99.100"  -d monitoringartist/dockbix-agent-xxl-limited:latest
+
+
+##官方资料https://github.com/monitoringartist/Zabbix-Docker-Monitoring
+
+
+
+#ansible批回放
+ansible docker-agents -m shell -a  "mkdir -p /usr/src/zabbix/src/modules/zabbix_module_docker/ && usermod -aG docker zabbix && echo -e '\nLoadModulePath=/usr/src/zabbix/src/modules/zabbix_module_docker\nLoadModule=zabbix_module_docker.so' >>  /etc/zabbix/zabbix_agentd.conf" -k
+ansible docker-agents -m copy -a  "src=/usr/src/zabbix/src/modules/zabbix_module_docker/zabbix_module_docker.so dest=/usr/src/zabbix/src/modules/zabbix_module_docker/zabbix_module_docker.so mode=777" -k
+ansible docker-agents -m shell -a  "service zabbix-agent restart" -k

@@ -1,0 +1,106 @@
+#=====================================seleniumhub相关信息=====================================
+selenium-grid连接地址:192.168.99.100:4444
+selenium-grid图形（WEB）界面：http://192.168.99.100:4444/grid/console
+selenium-java版本：3.141.59
+selenium-java,chrome版本：version:78.0.3904.70
+selenium-java,firefox版本：version:70.0 (64-bit)
+#=====================================end=====================================
+
+
+
+
+
+#=====================================调试相关信息=====================================
+#  VNC-Viewer-5.1.0-Windows-64bit.exe  win连接linux图形化的工具
+VNC连接地址： 
+seleniumhub: 192.168.99.100:4444
+chrome:192.168.99.100:10001   password:secret  version:78.0.3904.70
+firefox:192.168.99.100:10002   password:secret version:70.0 (64-bit)
+#=====================================end=====================================
+
+
+
+
+#=====================docker容器相关=====================================
+#设置中文
+1.   localedef -i zh_CN -f UTF-8 zh_CN.UTF-8
+2.   RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo 'Asia/Shanghai' >/etc/timezone 
+    && apt-get update  \
+	&& apt-get -y install ttf-wqy-microhei ttf-wqy-zenhei  \
+	&& apt-get clean
+
+官方设置语言
+ENV LANGUAGE en_US.UTF-8
+ENV LANG en_US.UTF-8
+RUN locale-gen en_US.UTF-8 \
+  && dpkg-reconfigure --frontend noninteractive locales \
+  && apt-get update -qqy \
+  && apt-get -qqy --no-install-recommends install \
+    language-pack-en \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+  
+#=====================================end=====================================
+
+
+
+  
+#=========================docker-compose.yml=====================================
+# To execute this docker-compose yml file use `docker-compose -f <file_name> up`
+# Add the `-d` flag at the end for detached execution
+version: "3"
+services:
+  selenium-hub:
+    image: selenium/hub:3.141.59-xenon
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+    environment:
+      - JAVA_OPTS=-Xmx1024m
+      - SE_OPTS="-debug"
+      - GRID_DEBUG=false
+#      - HUB_HOST=<hub_ip|hub_name>
+#      - HUB_PORT=4444
+  chrome:
+    image: selenium/node-chrome-debug:3.141.59-xenon
+    container_name: chrome-node
+    ports:
+      - "10001:5900"
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=5
+      - NODE_MAX_SESSION=5
+#      - START_XVFB=false
+  firefox:
+    image: selenium/node-firefox-debug:3.141.59-xenon
+    container_name: firefox-node
+    ports:
+      - "10002:5900"
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+#hub server host
+      - HUB_HOST=selenium-hub
+#hub server port
+      - HUB_PORT=4444
+#a node with 5 slots
+      - NODE_MAX_INSTANCES=5
+#sets the maximum amount of tests that can run at the same time in a node
+      - NODE_MAX_SESSION=5
+#running tests in headless mode
+#      - START_XVFB=false  
+
+#-e SCREEN_WIDTH=1366 -e SCREEN_HEIGHT=768 -e SCREEN_DEPTH=24 -e SCREEN_DPI=74
+#https://hub.docker.com/r/selenium/hub/dockerfile
+#https://hub.docker.com/r/selenium/node-firefox-debug/dockerfile
+#https://github.com/SeleniumHQ/docker-selenium
+#=====================================end=====================================
+
+

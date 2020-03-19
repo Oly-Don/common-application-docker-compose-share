@@ -1,0 +1,21 @@
+version: "2"
+services:
+
+  nginxservice:
+    image: docker.elastic.co/logstash/logstash:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: logstash
+    restart: always
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+#      - /opt/logstash/config/:/usr/share/logstash/config/:rw
+      - /opt/logstash/pipeline/:/usr/share/logstash/pipeline/:ro
+    environment:
+      - TZ="Asia/Shanghai"
+      - XPACK_MONITORING_ENABLED="false"
+      - xpack.monitoring.elasticsearch.hosts="http://192.168.99.100:9200"
+ ##启动,重新构建 docker-compose /opt/logstash/docker-compose.yml up --build -d

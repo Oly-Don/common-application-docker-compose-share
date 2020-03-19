@@ -1,0 +1,12 @@
+version: "2.1"
+services:
+
+  redisservice-develeper:
+    image: redis:4.0-alpine
+    ports:
+      - 7379:6379
+    container_name: redis-develeper
+    restart: always
+    command: redis-server --appendonly no --save '' --requirepass 'u6hCwUvd0w7uwjloHEPgVhwej65HTw'
+#    volumes:
+#      - ./redis:/redis

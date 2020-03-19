@@ -1,0 +1,26 @@
+version: "2"
+services:
+
+  mongo-server:
+    image: mongo:3.4
+    container_name: mongo
+    volumes:
+      - /data/mongocontainer:/data/db
+      - /usr/share/zoneinfo/Asia:/usr/share/zoneinfo/Asia
+    ports:
+      - "17017:27017"
+    restart: always
+    environment:
+      - TZ="Asia/Shanghai"
+#    command: "--auth"
+# use admin
+# db.createUser({user:"mongousername",pwd:"mongousernameQwe!23",roles:[{role:"root",db:"admin"}]})
+# db.auth("mongousername","mongousernameQwe!23")
+# use slalog
+# db.createUser({user:"slauser",pwd:"mongousernameQwe!23",roles:[{role:"dbOwner",db:"slalog"}]})
+# db.auth({user:"mongousername",pwd:"mongousernameQwe!23"})
+# 添加以下
+#      - MONGO_INITDB_ROOT_USERNAME="mongousername"
+#      - MONGO_INITDB_ROOT_PASSWORD="mongousernameQwe!23"
+# docker-compose.yml down
+# docker-compose.yml up -d

@@ -1,0 +1,28 @@
+version: '2.2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    container_name: elasticsearch
+    environment:
+      - "bootstrap.memory_lock=true"
+      - "cluster.name=elasticsearch-clu"
+      - "node.name=192.168.99.100"
+      - "ES_JAVA_OPTS=-Xms3g -Xmx3g -Des.scripting.exception_for_missing_value=true"
+      - "network.host=192.168.99.100"
+      - "discovery.zen.minimum_master_nodes=1"
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /usr/local/esdata1/:/usr/share/elasticsearch/data/
+#ik.zip	  
+    ports:
+      - 9200:9200
+      - 9300:9300
+    network_mode: host
+	
+#  /usr/share/elasticsearch/config/jvm.options
+#docker.elastic.co/elasticsearch/elasticsearch
+#docker run -d --name elasticsearch -p 9201:9200 -p 9301:9300 -e "discovery.type=single-node" elasticsearch:6.4.0

@@ -1,0 +1,18 @@
+version: "3.3"
+services:
+
+  rabbit:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+      - 25672:25672
+      - 61613:61613
+    environment:
+       RABBITMQ_DEFAULT_USER: "rabbituser"
+       RABBITMQ_DEFAULT_PASS: "u6hCwUvd0w7uwjloHEPgVhwej65HTw"
+#    volumes:
+#      - /opt/rabbitmq/rabbitmq.config:/var/lib/rabbitmq/config/generated/rabbitmq.config:rw
+
+#docker run -d --hostname rabbit --name rabbit -e RABBITMQ_DEFAULT_USER="rabbituser" -e RABBITMQ_DEFAULT_PASS="u6hCwUvd0w7uwjloHEPgVhwej65HTw" -p 15672:15672 -p 5672:5672 -p 25672:25672 -p 61613:61613 -p 1883:1883 rabbitmq:management

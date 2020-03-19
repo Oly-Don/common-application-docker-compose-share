@@ -1,0 +1,80 @@
+# To execute this docker-compose yml file use `docker-compose -f <file_name> up`
+# Add the `-d` flag at the end for detached execution
+version: "3"
+services:
+  selenium-hub:
+    image: selenium/hub:3.141.59-xenon
+    container_name: selenium-hub
+    restart: always
+    ports:
+      - "4444:4444"
+    #/opt/selenium/config.json
+    #/opt/bin/generate_config
+    environment:
+      - JAVA_OPTS=-Xmx512m
+      - SE_OPTS="-debug"
+      #second
+      - GRID_BROWSER_TIMEOUT="300"
+      - GRID_MAX_SESSION="30"
+      #      - GRID_HUB_HOST=""
+      #      - GRID_HUB_PORT=""
+      #      - GRID_MAX_SESSION=""
+      #      - GRID_NEW_SESSION_WAIT_TIMEOUT=""
+      #      - GRID_THROW_ON_CAPABILITY_NOT_PRESENT=""
+      #      - GRID_JETTY_MAX_THREADS=""
+      #      - GRID_CLEAN_UP_CYCLE=""
+      - GRID_BROWSER_TIMEOUT="180"
+      ##auto release slot
+      - GRID_TIMEOUT="300"
+      #      - GRID_DEBUG=""
+      - TZ=Asia/Shanghai
+      - LANG="zh_CN.UTF-8"
+      - LANGUAGE=Asia/Shanghai
+  chrome:
+    image: selenium/node-chrome-debug:3.141.59-xenon
+    container_name: chrome-node
+    restart: always
+    ports:
+      - "10001:5900"
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=20
+      - NODE_MAX_SESSION=30
+      #      - START_XVFB=false
+      - TZ=Asia/Shanghai
+      - LANG="zh_CN.UTF-8"
+      - LANGUAGE=Asia/Shanghai
+  firefox:
+    image: selenium/node-firefox-debug:3.141.59-xenon
+    container_name: firefox-node
+    restart: always
+    ports:
+      - "10002:5900"
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+      #hub server host
+      - HUB_HOST=selenium-hub
+      #hub server port
+      - HUB_PORT=4444
+      #a node with 5 slots
+      - NODE_MAX_INSTANCES=10
+      #sets the maximum amount of tests that can run at the same time in a node
+      - NODE_MAX_SESSION=30
+      #running tests in headless mode
+      #      - START_XVFB=false
+      - TZ=Asia/Shanghai
+      - LANG="zh_CN.UTF-8"
+      - LANGUAGE=Asia/Shanghai
+
+#-e SCREEN_WIDTH=1366 -e SCREEN_HEIGHT=768 -e SCREEN_DEPTH=24 -e SCREEN_DPI=74
+#https://hub.docker.com/r/selenium/hub/dockerfile
+#https://hub.docker.com/r/selenium/node-firefox-debug/dockerfile
+#https://github.com/SeleniumHQ/docker-selenium

@@ -1,0 +1,24 @@
+version: "2.0"
+services:
+  jenkins:
+    image: 'jenkins:local'
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        version: 1.0
+    container_name: ci
+    restart: on-failure:5
+    ports:
+      - '8018:8080'
+#      - '8022:22'
+      - '50000:50000'
+    volumes:
+      - /var/lib/jenkins:/var/jenkins_home
+      - /bin/docker:/usr/bin/docker
+      - /var/run/docker.sock:/var/run/docker.sock
+#      - settings.xml /usr/share/maven/conf/settings.xml
+    user: root
+
+    ##注意权限
+    ## docker-compose -f docker-compose.yml up -d

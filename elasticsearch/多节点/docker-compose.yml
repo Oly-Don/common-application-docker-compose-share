@@ -1,0 +1,67 @@
+version: '2.2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    container_name: elasticsearch
+    environment:
+      - cluster.name=sla-es-clu
+      - bootstrap.memory_lock=true
+#      - "network.host=192.168.99.100"
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - "discovery.zen.minimum_master_nodes=2"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+#    volumes:
+#      - /usr/local/esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - esnet
+    hostname: es01
+  elasticsearch2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    container_name: elasticsearch2
+    environment:
+      - cluster.name=sla-es-clu
+      - bootstrap.memory_lock=true
+      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+      - "discovery.zen.minimum_master_nodes=2"
+#      - "network.host=192.168.99.100"
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9201:9200
+      - 9301:9300
+#    volumes:
+#      - /usr/local/esdata2:/usr/share/elasticsearch/data
+    networks:
+      - esnet
+    hostname: es02
+
+#volumes:
+#  esdata1:
+#    driver: local
+#  esdata2:
+#    driver: local
+
+networks:
+  esnet:
+## docker-compose -f /opt/elasticsearch_install/docker-compose.yml up -d
+## https://www.elastic.co/guide/en/elasticsearch/reference/6.6/docker.html
+## https://www.elastic.co/guide/en/elasticsearch/reference/6.6/settings.html
+#
+#configure
+#https://www.elastic.co/guide/en/elasticsearch/reference/current/system-config.html
+#https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html
+
+#docker.elastic.co/elasticsearch/elasticsearch
+
+

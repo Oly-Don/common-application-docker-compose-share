@@ -1,0 +1,9 @@
+FROM zabbix/zabbix-server-mysql:centos-4.0.5
+
+ENV TZ=Asia/Shanghai PHP_TZ=Asia/Shanghai LC_ALL=zh_CN.utf8
+
+# beware this has  no tested yet
+#RUN yum -y install kde-l10n-Chinese && yum -y reinstall glibc-common && localedef -c -f UTF-8 -i zh_CN zh_CN.utf8
+#https://blog.csdn.net/vincentxiaob/article/details/102955283?depth_1-utm_source=distribute.pc_relevant.none-task&utm_source=distribute.pc_relevant.none-task
+
+ADD /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

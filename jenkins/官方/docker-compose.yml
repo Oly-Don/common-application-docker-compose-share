@@ -1,0 +1,18 @@
+version: "2.0"
+services:
+
+  jenkins:
+    image: jenkins:latest
+    container_name: ci
+    restart: on-failure:5
+    ports:
+      - '8018:8080'
+      - '50000:50000'
+    volumes:
+      - /opt/jenkins:/var/jenkins_home
+      - /bin/docker:/usr/bin/docker
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: jenkins
+
+    ##注意权限
+    ## docker-compose -f docker-compose.yml up -d

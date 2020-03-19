@@ -1,0 +1,55 @@
+#关闭防火墙
+systemctl stop firewalld
+#准备docker自定义网络
+docker  network create redis-net
+#创建文件夹
+mkdir -p /opt/redis-cluster && touch redis-cluster.tmpl
+#准备样例
+echo -e "port \${PORT}\nprotected-mode no\ncluster-enabled yes\ncluster-config-file nodes.conf\ncluster-node-timeout 5000\ncluster-announce-ip ${IP} \ncluster-announce-port \${PORT}\ncluster-announce-bus-port 1\${PORT}\nappendonly yes\nlogfile /data/redis${PORT}.log\nloglevel notice\ntimeout 600\n#requirepass 123456\n#masterauth" >> /opt/redis-cluster/redis-cluster.tmpl
+#修改宿主机ip
+sed -i 's/\${IP}/192.168.99.100/g' /opt/redis-cluster/redis-cluster.tmpl
+
+cd /opt/redis-cluster 
+#基于样例生成各实例的配置文件
+for port in `seq 7000 7005`; do \
+  mkdir -p /opt/redis-cluster/${port}/conf \ && PORT=${port} envsubst < /opt/redis-cluster/redis-cluster.tmpl > /opt/redis-cluster/${port}/conf/redis.conf \ && mkdir -p /opt/redis-cluster/${port}/data; 
+done
+
+#替换端口
+sed -i 's/\${PORT}/7000/g' /opt/redis-cluster/7000/conf/redis.conf
+sed -i 's/\${PORT}/7001/g' /opt/redis-cluster/7001/conf/redis.conf
+sed -i 's/\${PORT}/7002/g' /opt/redis-cluster/7002/conf/redis.conf
+sed -i 's/\${PORT}/7003/g' /opt/redis-cluster/7003/conf/redis.conf
+sed -i 's/\${PORT}/7004/g' /opt/redis-cluster/7004/conf/redis.conf
+sed -i 's/\${PORT}/7005/g' /opt/redis-cluster/7005/conf/redis.conf
+
+#启动各个容器
+for port in `seq 7000 7005`; do \
+  docker run -d -ti -p ${port}:${port} -p 1${port}:1${port} \
+  -v /opt/redis-cluster/${port}/conf/redis.conf:/usr/local/etc/redis/redis.conf \
+  -v /opt/redis-cluster/${port}/data:/data \
+  --restart always --name redis-${port} --net redis-net \
+  --sysctl net.core.somaxconn=1024 redis:5.0 redis-server /usr/local/etc/redis/redis.conf; \
+done
+
+#获取docker容器内部ip地址,集群时需要使用
+for port in `seq 7000 7005`; do \
+    echo -n "$(docker inspect --format '{{ (index .NetworkSettings.Networks "redis-net").IPAddress }}' "redis-${port}")":${port} ' ' ; \
+done
+	172.19.0.2:7000  172.19.0.3:7001  172.19.0.4:7002  172.19.0.5:7003  172.19.0.6:7004  172.19.0.7:7005
+
+#执行集群创建
+docker exec -it  redis-7000 bash 
+redis-cli --cluster create 172.19.0.2:7000  172.19.0.3:7001  172.19.0.4:7002  172.19.0.5:7003  172.19.0.6:7004  172.19.0.7:7005 --cluster-replicas 1
+
+#取消注释,为实例设置密码
+sed -i 's/#masterauth/masterauth/g' 700*/conf/redis.conf 
+grep "master" 700*/conf/redis.conf 
+sed -i 's/#requirepass/requirepass/g' 700*/conf/redis.conf 
+grep "pass" 700*/conf/redis.conf 
+#设置密码需要重启,!!!注意redis数据是否已落地.未落地会影响已有消息/缓存.!!!
+for port in `seq 7000 7005`; do   docker restart redis-$port ; done
+
+##摧毁容器和数据才执行
+#rm -fr /opt/redis-cluster/700*/data/*
+#for port in `seq 7000 7005`; do   docker rm -f -v redis-$port ; done

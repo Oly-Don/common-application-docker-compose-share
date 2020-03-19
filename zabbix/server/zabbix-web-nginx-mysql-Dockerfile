@@ -1,0 +1,5 @@
+FROM zabbix/zabbix-web-nginx-mysql:centos-4.0.5
+
+ENV TZ=Asia/Shanghai PHP_TZ=Asia/Shanghai
+
+ADD /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

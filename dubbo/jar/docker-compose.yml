@@ -1,0 +1,16 @@
+version: "2"
+services:
+  
+  dubboservice:
+    image: airdock/oracle-jdk:jdk-8u112
+    container_name: dubbo
+    user: root
+    ports:
+      - 7001:7001
+    volumes:
+      - /opt/dubbo/dubbo-admin-0.0.1-SNAPSHOT.jar:/root/dubbo.jar
+      - /opt/dubbo/application.properties:/root/application.properties:ro
+##      - $PWD/logs/:/usr/local/tomcat/logs/
+##        - $PWD/:/usr/local/tomcat/webapps/ 
+    restart: always
+    command: java -jar /root/dubbo.jar

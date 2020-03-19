@@ -1,0 +1,62 @@
+# Created by .ignore support plugin (hsz.mobi)
+#.gitignore
+
+# Operating System Files 
+
+*.DS_Store 
+Thumbs.db 
+*.sw? 
+.#* 
+*# 
+*~ 
+*.sublime-* 
+
+# Build Artifacts 
+
+.gradle/
+build/
+target/
+bin/
+dependency-reduced-pom.xml 
+
+# Eclipse Project Files 
+
+.classpath
+.project
+.settings/
+*/test-output
+
+# IntelliJ IDEA Files 
+
+*.iml
+*.ipr 
+*.iws 
+*.idea
+#*.key
+#*.crt
+*/*.iml
+*/*.ipr 
+*/*.iws 
+*/*.idea
+oly_jmeter/src/test/jmeter/jmx/disable_invoice.jmx
+*.log
+
+
+/**   by type
+
+*/*.zip
+*/*.war
+*/*.log*
+*/*.jar
+*/*.classs*
+*/*.tgz
+*/*.gz
+*/*.rpm
+
+
+
+*/out
+/harbor/harbor-offline-installer-v1.7.5.tgz
+
+/dubbo/war/dubbo.war
+/dubbo/jar/dubbo-admin-0.0.1-SNAPSHOT.jar

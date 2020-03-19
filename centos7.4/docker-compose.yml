@@ -1,0 +1,12 @@
+version: "2"
+services:
+
+  nginxservice:
+    image: centos7:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: centos
+    ports:
+      - "10022:22"
+      - "10080:80"

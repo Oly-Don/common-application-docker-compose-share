@@ -1,0 +1,51 @@
+##注意修改   -p 7004 -a 'u6hCwUvd0w7uwjloHEPgVhwej65HTw'  为redis实际端口、密码
+##注意修改   192.168.99.100  修改成zabbix-server的内网ip地址
+
+第一步：redis机器上安装基础软件环境
+yum -y install python-pip
+pip install redis  #(可能还需要一下模块sys, redis, json, re, struct, time, socket, argparse)
+
+第二步：redis机器上创建目录、上传文件
+mkdir -p /etc/zabbix/script/redis
+
+上传文件到：/etc/zabbix/script/redis/zbx_redis_stats.py
+上传文件到：/etc/zabbix/zabbix_agentd.d/zbx_redis.conf 
+
+为python脚本赋权：chmod a+x /etc/zabbix/script/redis/zbx_redis_stats.py
+
+第三步：redis机器上检查配置
+#作用：检查	/etc/zabbix/zabbix_agentd.conf是否引入 配置文件/etc/zabbix/zabbix_agentd.d/zbx_redis.conf的父目录。
+grep "Include=/etc/zabbix/zabbix_agentd.d/" /etc/zabbix/zabbix_agentd.conf || echo  "/etc/zabbix/zabbix_agentd.d/ !!!!!!!!config error!!!!!!!!"
+
+#修改zabbix-server的ip地址
+vi /etc/zabbix/script/redis/zbx_redis_stats.py
+	zabbix_host = '192.168.99.100'         # 修改为Zabbix Server 内网 IP
+	zabbix_port = 10051                  # 修改为Zabbix Server Port，默认10050
+	
+第四步：redis服务器上做本地调试（可忽略不做）
+##检查Redis已连接的客户端数量
+python /etc/zabbix/script/redis/zbx_redis_stats.py -a 'u6hCwUvd0w7uwjloHEPgVhwej65HTw' 127.0.0.1 connected_clients none  -p 7004
+
+##示例说明
+# 7000 == 要检查的端口号
+# u6hCwUvd0w7uwjloHEPgVhwej65HTw ==  redis密码
+# 127.0.0.1 == redis机器ip，如果脚本所在就是redis机器那就写127.0.0.1
+# connected_clients   ==  要监控的字段connected_clients,取值范围redis-cli中info里面的信息。
+# none  == 要监控的redis的数据库名，系统级别的信息不需要数据库名所以为none。
+
+第五步：重启redis上的zabbix-agent,使配置生效。
+service zabbix-agent restart
+
+最后：zabbix-server的页面上导入模板文件：zbx_redis_templates.xml，为redis主机添加模板。
+也可自行添加：监控项、触发器
+
+1.监控项示例：  以6379端口，检查gcc_version为例
+名称：redisclu$2:$1-$3
+类型：Zabbix 客户端
+键值：redisclu[{HOSTNAME}, gcc_version,none,7000]
+信息类型： 字符
+更新间隔： 60s
+
+2.触发器示例：   以服务端口7000，是否转变为例。状态转变标识服务启停。
+名称：Redis is down on {HOSTNAME}
+表达式：{Template Redis Modified:net.tcp.port[{HOST.IP},7000].last(0)}=0

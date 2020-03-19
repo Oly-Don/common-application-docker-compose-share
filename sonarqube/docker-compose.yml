@@ -1,0 +1,20 @@
+version: "2"
+services:
+
+  sonar:
+    image: sonarqube:latest
+    container_name: sonar
+    ports:
+      - "9000:9000"
+    restart: always
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:mysql://192.168.99.100:3306/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance&useSSL=false
+      - SONARQUBE_JDBC_USERNAME=sonar
+      - SONARQUBE_JDBC_PASSWORD=u6hCwUvd0w7uwjloHEPgVhwej65HTw
+      - SONARQUBE_WEB_HOST=192.168.99.100
+    volumes:
+      - /opt/sonarqubecontainer/conf/:/opt/sonarqube/conf/
+      - /opt/sonarqubecontainer/data/:/opt/sonarqube/data/
+      - /opt/sonarqubecontainer/logs/:/opt/sonarqube/logs/
+      - /opt/sonarqubecontainer/extensions/:/opt/sonarqube/extensions/
+ ##启动，重新构建 docker-compose up --build -d

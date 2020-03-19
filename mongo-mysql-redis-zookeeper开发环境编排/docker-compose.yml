@@ -1,0 +1,54 @@
+version: "2.1"
+services:
+     
+  redisservice:
+    image: redis:4.0
+    container_name: redis-auth
+    ports:
+      - "6379:6379"
+    restart: always
+    command: redis-server --appendonly no --save '' --requirepass 'u6hCwUvd0w7uwjloHEPgVhwej65HTw'
+    environment: 
+      - TZ=Asia/Shanghai
+      
+  mongoservice:
+    image: mongo:3.4
+    container_name: mongo-no-auth
+    volumes:
+      - /usr/local/mongocontainer:/data/db
+    ports:
+      - "27017:27017"
+    restart: always
+    environment:
+      - TZ="Asia/Shanghai"
+      
+  mysqlservice:
+    image: mysql:5.7.22
+    container_name: mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - /usr/local/mysqlcontainer/data/:/var/lib/mysql/
+    environment:
+      - MYSQL_ROOT_PASSWORD=u6hCwUvd0w7uwjloHEPgVhwej65HTw
+      - MYSQL_DATABASE=app
+      - TZ=Asia/Shanghai
+    restart: always
+    
+  zookeeperservice:
+    image: zookeeper:3.4.10
+    container_name: zookeeper
+    restart: always
+    ports:
+      - 2181:2181
+    volumes:
+      - /usr/local/zookeeperocontainer/zoo1/:/data/:rw
+    environment:
+      - ZOO_TICK_TIME=2000
+      - ZOO_INIT_LIMIT=5
+      - ZOO_SYNC_LIMIT=2
+      - ZOO_MAX_CLIENT_CNXNS=10000
+      - ZOO_AUTOPURGE_PURGEINTERVAL=3
+      - ZOO_AUTOPURGE_SNAPRETAINCOUNT=3
+#启动指令:
+# docker-compose up -d

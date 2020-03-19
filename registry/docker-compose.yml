@@ -1,0 +1,13 @@
+version: "3"
+services:
+
+  registryservice:
+    image: registry:2.6.0
+    container_name: imagebase
+    volumes:
+      - /opt/registrycontainer/:/var/lib/registry/
+    ports:
+      - "5000:5000"
+    restart: always
+##docker run -d --name registry -p 5000:5000 --restart=always -v /opt/registry/:/var/lib/registry/ registry:2.6.0
+## docker-compose up -d

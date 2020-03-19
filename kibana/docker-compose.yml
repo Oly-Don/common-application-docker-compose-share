@@ -1,0 +1,17 @@
+version: '2'
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.6.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    volumes:
+      - /opt/kibana_install/kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+#      SERVER_NAME: 192.168.99.100
+      ELASTICSEARCH_HOSTS: http://127.0.0.1:9002
+
+
+## docker-compose -f /opt/kibana_install/docker-compose.yml up -d
+## https://www.elastic.co/guide/en/kibana/6.6/docker.html
+## https://www.elastic.co/guide/en/kibana/6.6/settings.html

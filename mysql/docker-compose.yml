@@ -1,0 +1,18 @@
+version: "2.0"
+services:
+
+  mysqlservice:
+    image: mysql:5.7.22
+    container_name: mysql
+    ports:
+      - 13306:3306
+    volumes:
+      - /data/mysql/dockerdata/:/var/lib/mysql/
+      - /data/mysql/logs/:/logs/
+    environment:
+      - MYSQL_ROOT_PASSWORD=u6hCwUvd0w7uwjloHEPgVhwej65HTw
+      - MYSQL_DATABASE=app
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=u6hCwUvd0w7uwjloHEPgVhwej65HTw
+      - TZ=Asia/Shanghai
+    restart: always

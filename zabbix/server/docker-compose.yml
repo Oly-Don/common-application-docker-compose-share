@@ -1,0 +1,76 @@
+version: "2"
+services:
+
+    mysql:
+      image: mysql:5.7
+      container_name: mysql
+      environment:
+#        - MYSQL_DATABASE=zabbix
+        - MYSQL_USER=root
+        - MYSQL_ROOT_PASSWORD=u6hCwUvd0w7uwjloHEPgVhwej65HTw
+        - TZ=Asia/Shanghai
+      ports:
+        - '3306:3306'
+      networks:
+        - zbx-net
+      volumes:
+        - /opt/mysqldata/:/var/lib/mysql/
+
+    web:
+      image: zabbix/zabbix-web-nginx-mysql
+      build:
+        context: .
+        dockerfile: zabbix-web-nginx-mysql-Dockerfile
+      container_name: zabbix-web-nginx-mysql
+      environment:
+        - DB_SERVER_HOST=mysql
+#        - MYSQL_DATABASE=zabbix
+        - MYSQL_USER=root
+        - MYSQL_PASSWORD=u6hCwUvd0w7uwjloHEPgVhwej65HTw
+        - ZBX_SERVER_HOST=zabbix-server
+        - PHP_TZ=Asia/Shanghai
+        - TZ=Asia/Shanghai
+      ports:
+        - '80:80'
+      links:
+        - mysql
+        - zabbix-server
+      depends_on:
+        - mysql
+      networks:
+        - zbx-net
+
+    zabbix-server:
+      image: zabbix/zabbix-server-mysql
+      build:
+        context: .
+        dockerfile: zabbix-server-mysql-Dockerfile
+      container_name: zabbix-server-mysql
+      environment:
+        - DB_SERVER_HOST=mysql
+#        - MYSQL_DATABASE=zabbix
+        - MYSQL_USER=root
+        - MYSQL_PASSWORD=u6hCwUvd0w7uwjloHEPgVhwej65HTw
+        - ZBX_DEBUGLEVEL=3
+        - PHP_TZ=Asia/Shanghai
+        - TZ=Asia/Shanghai
+      ports:
+        - '10051:10051'
+      links:
+        - mysql
+      depends_on:
+        - mysql
+      networks:
+        - zbx-net
+      volumes:
+        - /opt/zabbix-server/alertscripts/:/usr/lib/zabbix/alertscripts/
+        - /opt/zabbix-server/externalscripts/:/usr/lib/zabbix/externalscripts/
+        - /opt/zabbix-server/modules/:/var/lib/zabbix/modules/
+        - /opt/zabbix-server/simkai.ttf/:/var/lib/zabbix/modules/simkai.ttf
+
+networks:
+  zbx-net:
+
+## docker-compose up --build -d
+## init user-password: Admin zabbix
+## https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_server

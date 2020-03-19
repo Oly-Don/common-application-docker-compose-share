@@ -1,0 +1,22 @@
+version: "2.1"
+services:
+
+  httpd:
+    image: httpd:diy
+    container_name: httpd
+    ports:
+      - "20020:20020"
+    build:
+      context: ./
+      dockerfile: Dockerfile-diyhttpd
+    restart: always
+    environment: 
+      - "TZ=Asia/Shanghai"
+    volumes: 
+      - /opt/snweb/psp/www/:/usr/local/apache2/htdocs/:rw
+      - /var/log/httpd/:/etc/httpd/logs/:rw
+#      - /usr/local/apache2/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf:rw
+#      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
+#    user: ftp
+
+#docker run --rm -it --name httpd --network host --hostname `hostname` -p 20080:80 -v /tmp:/var/www/html -v /var/log/httpd/:/etc/httpd/logs/ -e ServerName="192.168.99.100" httpd bash

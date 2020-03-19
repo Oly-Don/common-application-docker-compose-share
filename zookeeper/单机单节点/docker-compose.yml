@@ -1,0 +1,19 @@
+version: "2"
+services:
+
+  zookeeperservice:
+    image: zookeeper:3.4.12
+    restart: always
+    container_name: zk
+    ports:
+      - 2181:2181
+    volumes:
+      - /opt/singlezkdata/:/data/
+      - /opt/singlezkdatalog/:/datalog/
+    environment:
+      ZOO_TICK_TIME: 2000
+      ZOO_INIT_LIMIT: 5
+      ZOO_SYNC_LIMIT: 2
+      ZOO_MAX_CLIENT_CNXNS: 10000
+      ZOO_AUTOPURGE_PURGEINTERVAL: 5
+      ZOO_AUTOPURGE_SNAPRETAINCOUNT: 10

@@ -1,0 +1,117 @@
+
+curl http://192.168.99.100:9200/_cat/indices?v
+绿色表示一切正常, 黄色表示所有的数据可用但是部分副本还没有分配,红色表示部分数据因为某些原因不可用
+curl http://192.168.99.100:9200/_cat/health?v
+curl http://192.168.99.100:9200/_cat/nodes?v
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_login/_search?pretty' -d '{ "sort": {  "logtime": "desc" } ,"query": { "match_all": {} }}'
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_ui/_search?pretty' -d '{ "sort": {  "logtime": "desc" } ,"query": { "match_all": {} }}'
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_button/_search?pretty' -d '{ "sort": {  "logtime": "desc" } ,"query": { "match_all": {} }}'
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/applog/_search?pretty' -d '{ "sort": {  "logtime": "desc" } ,"query": { "match_all": {} }}'
+
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_button/_search?pretty' -d '{ "query": { "match_all": {} }}'
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_app/_search?pretty' -d '{ "sort": {  "logtime": "desc" } , "query": { "match_all": {} }}'
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_linux/_search?pretty' -d '{ "sort": {  "logtime": "desc" } , "query": { "match_all": {} }}'
+curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_action/_search?pretty' -d '{ "sort": {  "logtime": "desc" } , "query": { "match_all": {} }}'
+
+
+
+
+=======================================kafa数据=======================================
+{
+  "id": null,
+  "cuicode": null,
+  "serverid": "XXXIA-01",
+  "clientip": null,
+  "username": null,
+  "ticket": null,
+  "logtime": 1562663903413,
+  "level": "ERROR",
+  "logger": "xxxxxx.bas.auth.LoginService",
+  "message": "解码授权Key",
+  "uiinfo": null,
+  "err_code": null,
+  "traces": null,
+  "root_msg": null,
+  "root_trace": null
+}
+
+=======================================Logstash定义=======================================
+[root@sla XXX]# cat /opt/logstashconf/Login.conf
+input {
+kafka {
+bootstrap_servers => ["10.10.101.66:9092"]
+auto_offset_reset => "latest"
+topics => ["Logger"]
+codec => json {
+charset => "UTF-8"
+}
+}
+}
+filter {
+if [logger] == "xxxxxx.bas.auth.LoginService" {
+date {
+match => ["logtime","ISO8601", "UNIX", "UNIX_MS"]
+target => "logtime"
+}
+dissect {
+mapping => {"message" => "%{username}|%{usercode}|%{ssssds}|%{flag}|%{remark}"}
+convert_datatype => {flag => "int"}
+}
+mutate {
+remove_field => ["err_code","message","uiinfo","root_msg","id","@version","ticket","root_trace","@timestamp","traces","tags","cuicode"]
+}
+}
+}
+output {
+if [logger] == 'xxxxxx.bas.auth.LoginService' {
+elasticsearch {
+hosts => ["192.168.99.101:9200","192.168.99.100:9200"]
+index => "XXXlog_login"
+}
+}
+}
+
+=======================================ES存盘数据=======================================
+[root@sla XXX]# curl  -H "Content-Type: application/json" -XPOST '192.168.99.100:9200/XXXlog_login/_search?pretty'-d '{ "sort": {  "logtime": "desc" } ,"query": { "match_all": {} }}'
+
+
+{
+  "took" : 22,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : 707890,
+    "max_score" : null,
+    "hits" : [
+      {
+        "_index" : "XXXlog_login",
+        "_type" : "doc",
+        "_id" : "tzHEnWsBwQd6RKpl5jov",
+        "_score" : null,
+        "_source" : {
+          "logger" : "xxxxxx.bas.auth.LoginService",
+          "idworkspc" : "00",
+          "logtime" : "2019-06-28T10:50:00.438Z",
+          "tags" : [
+            "_dateparsefailure"
+          ],
+          "serverid" : "XXXUI-02",
+          "username" : "dsadsada",
+          "flag" : 2,
+          "level" : "WARN",
+          "clientip" : "192.168.0.6",
+          "usercode" : "dongman",
+          "remark" : "登录失败,无效的用户名或密码"
+        },
+        "sort" : [
+          1561719000438
+        ]
+      }
+	 ]
+ }
+}

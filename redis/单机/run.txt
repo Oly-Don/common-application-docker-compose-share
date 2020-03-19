@@ -1,0 +1,1 @@
+docker run --restart  always -d --name single_redis -p 7379:6379 redis:4.0 --requirepass 'u6hCwUvd0w7uwjloHEPgVhwej65HTw'

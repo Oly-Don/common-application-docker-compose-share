@@ -1,0 +1,32 @@
+version: "2"
+services:
+
+    zabbix-agent :
+      image: zabbix/zabbix-agent
+      container_name: zabbix-agent
+      environment:
+        - TZ=Asia/Shanghai
+        - ZBX_DEBUGLEVEL=3
+        - ZBX_SERVER_HOST=192.168.99.100
+        - ZBX_ACTIVE_ALLOW=true
+        - ZBX_STARTAGENTS=0
+        - ZBX_TIMEOUT=5
+      hostname: app-99-100
+      privileged: true
+      volumes:
+        - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+#        - /opt/zabbix-agent/zabbix_agentd.d/:/etc/zabbix/zabbix_agentd.d/
+
+## docker-compose up --build -d
+##  privileged 特权模式,对服务器有最大权限
+## https://hub.docker.com/r/zabbix/zabbix-agent
+## agent.conf https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_agentd
+
+## ========active========
+## ZBX_SERVER_HOST server ip
+## ZBX_HOSTNAME 本机
+## ZBX_ACTIVE_ALLOW true 
+## ZBX_STARTAGENTS=0
+## ========passive========
+## ZBX_PASSIVE_ALLOW true
+## ZBX_STARTAGENTS=3
