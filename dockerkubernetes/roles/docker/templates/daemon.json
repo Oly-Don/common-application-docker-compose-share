@@ -1,0 +1,16 @@
+{
+  "storage-driver": "overlay2",
+  "graph":"{{ DOCKERHOME | default("/data/docker") }}",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true"
+  ],
+  "registry-mirrors": [{{mirror}}],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "1000m"
+  },
+  "exec-opts":[
+    "native.cgroupdriver=systemd"
+  ],
+  "insecure-registries":[{{insecurereg}}]
+}

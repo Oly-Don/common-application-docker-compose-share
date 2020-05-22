@@ -1,0 +1,160 @@
+- name: "==============WARNING  kubernetes - time tools=============="
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - chrony
+    - ntpdate
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - time adjust =============="
+  shell: "ntpdate ntp1.aliyun.com;clock -w;"
+  tags: kubernetes
+- name: "==============WARNING  kubernetes - close swap =============="
+  shell: "sed -i 's/.*swap.*/#&/' /etc/fstab"
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - close swap =============="
+  shell: "swapoff -a"
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - chronyd service =============="
+  service: name=chronyd.service enabled=yes state=started
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - disable firewalld service =============="
+  service: name=firewalld.service enabled=no state=stopped
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - disable iptables service if exist =============="
+  service: name=iptables.service enabled=no state=stopped
+  ignore_errors: yes
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - disable selinux =============="
+  shell: "setenforce 0"
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - disable selinux =============="
+  selinux: state=disabled
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - enable k8s.conf =============="
+  copy:
+    src: "k8s.conf"
+    dest: "/etc/sysctl.d/k8s.conf"
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - make k8s.conf effice =============="
+  shell: "sysctl --system"
+  tags: kubernetes,basic
+- name: "==============WARNING  kubernetes - setup up yum alibaba kubernetes.repo =============="
+  copy:
+    src: "kubernetes.repo"
+    dest: "/etc/yum.repos.d/kubernetes.repo"
+  tags: kubernetes
+- name: "==============WARNING  kubernetes - core - install kubelet kubeadm kubectl =============="
+  yum:
+    name: ['kubelet-1.18.0-0.x86_64', 'kubeadm-1.18.0-0.x86_64', 'kubectl-1.18.0-0.x86_64']
+    state: present
+  tags: kubernetes,kubelet,kubeadm,kubectl
+- name: "==============WARNING  kubernetes - core - enable kubelet service =============="
+  service: name=kubelet.service enabled=yes state=started
+  tags: kubernetes,kubelet
+- name: "==============WARNING  kubernetes - core - setup up kubelet configure =============="
+  shell: "echo KUBELET_EXTRA_ARGS=--cgroup-driver=systemd > /etc/sysconfig/kubelet "
+  tags: kubernetes,kubelet,docker
+- name: "==============WARNING  kubernetes - core - cgroup ==> systemd  daemon-reload  =============="
+  shell: "systemctl daemon-reload "
+  tags: kubernetes,kubelet,docker
+- name: "==============WARNING  kubernetes - core - enable kubelet service =============="
+  service: name=docker.service enabled=yes state=restarted
+  tags: kubernetes,kubelet,docker
+- name: "==============WARNING  kubernetes - assistence - kubectl auto-complete tools=============="
+  shell: "yum install bash-completion* -y"
+  tags: kubectl,kubernetes
+#- name: "==============WARNING  kubernetes - assistence - kubectl auto-complete tools=============="
+#  shell: 'source <(kubectl completion bash);echo "source <(kubectl completion bash)"  >>  ~/.bashrc'
+#  tags: kubectl,kubernetes
+- name: "==============WARNING  kubernetes - core - check up net modual =============="
+  shell: "modprobe br_netfilter"
+  tags: kubernetes
+- name: "==============WARNING  kubernetes - core - print kubeadm default configure =============="
+  shell: "kubeadm config print init-defaults  join-defaults "
+  tags: kubeadmin
+- name: "==============WARNING  kubernetes - core - prepare pull kubeadm image from alibaba=============="
+  shell: "kubeadm config images pull   --image-repository registry.aliyuncs.com/google_containers"
+  tags: kubeadmin,docker
+- name: "==============WARNING  kubernetes - core - tag alibaba image =============="
+  shell: "{{item}}"
+  with_items:
+    - "docker tag registry.aliyuncs.com/google_containers/kube-proxy:v1.18.0  gcr.azk8s.cn/google_containers/kube-proxy:v1.18.0"
+    - "docker tag registry.aliyuncs.com/google_containers/kube-apiserver:v1.18.0   gcr.azk8s.cn/google_containers/kube-apiserver:v1.18.0 "
+    - "docker tag registry.aliyuncs.com/google_containers/kube-controller-manager:v1.18.0   gcr.azk8s.cn/google_containers/kube-controller-manager:v1.18.0 "
+    - "docker tag registry.aliyuncs.com/google_containers/kube-scheduler:v1.18.0  gcr.azk8s.cn/google_containers/kube-scheduler:v1.18.0 "
+    - "docker tag registry.aliyuncs.com/google_containers/pause:3.2    gcr.azk8s.cn/google_containers/pause:3.2 "
+    - "docker tag registry.aliyuncs.com/google_containers/coredns:1.6.7  gcr.azk8s.cn/google_containers/coredns:1.6.7 "
+    - "docker tag registry.aliyuncs.com/google_containers/etcd:3.4.3-0  gcr.azk8s.cn/google_containers/etcd:3.4.3-0 "
+  tags: kubeadmin,docker
+  
+#prepare 10.10.104.55:5000/flannel:v0.12.0-amd64   kube-proxy:v1.18.0 kube-apiserver:v1.18.0 kube-controller-manager:v1.18.0 kube-scheduler:v1.18.0 pause:3.2 coredns:1.6.7 etcd:3.4.3-0 
+#- name: "==============WARNING  kubernetes - core - prepare pull kubeadm image from alibaba=============="
+#  shell: "kubeadm config images pull   --image-repository 10.10.104.55:5000  --kubernetes-version  v1.18.0 "
+#  tags: kubernetes,kubeadmin,docker,temp
+- name: "==============WARNING  kubernetes - core - tag alibaba image =============="
+  shell: "{{item}}"
+  with_items:
+    - "docker tag 10.10.104.55:5000/kube-proxy:v1.18.0  gcr.azk8s.cn/google_containers/kube-proxy:v1.18.0"
+    - "docker tag 10.10.104.55:5000/kube-apiserver:v1.18.0   gcr.azk8s.cn/google_containers/kube-apiserver:v1.18.0 "
+    - "docker tag 10.10.104.55:5000/kube-controller-manager:v1.18.0   gcr.azk8s.cn/google_containers/kube-controller-manager:v1.18.0 "
+    - "docker tag 10.10.104.55:5000/kube-scheduler:v1.18.0  gcr.azk8s.cn/google_containers/kube-scheduler:v1.18.0 "
+    - "docker tag 10.10.104.55:5000/pause:3.2    gcr.azk8s.cn/google_containers/pause:3.2 "
+    - "docker tag 10.10.104.55:5000/coredns:1.6.7  gcr.azk8s.cn/google_containers/coredns:1.6.7 "
+    - "docker tag 10.10.104.55:5000/etcd:3.4.3-0  gcr.azk8s.cn/google_containers/etcd:3.4.3-0 "
+  tags: kubeadmin,docker,temp
+
+#preprare local registry to privider local resp images from alibaba docker.io
+- debug:
+    msg:
+    - " preprare local registry to privider local resp images from alibaba docker.io "
+    - " preprare local registry to privider local resp images from alibaba docker.io "
+    - " preprare local registry to privider local resp images from alibaba docker.io "
+    - " preprare local registry to privider local resp images from alibaba docker.io "
+  tags: kubeadmin,docker,basic
+
+- name: "==============WARNING  kubernetes - core - tag alibaba image =============="
+  shell: "{{item}}"
+  with_items:
+    - "docker pull 10.10.104.55:5000/flannel:v0.12.0-amd64 "
+    - "docker tags 10.10.104.55:5000/flannel:v0.12.0-amd64  quay.io/coreos/flannel:v0.12.0-amd64 "
+  tags: kubeadmin,docker,temp
+
+
+# grep 104
+# 
+- name: "==============WARNING  kubernetes - hostname - analy ip  =============="
+  shell: |
+    localaddress=$(ip addr | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' |grep 104)
+    echo ${localaddress##*.}
+  register: hostname_suffix
+  tags: hostname
+- debug:
+    var: 
+    - hostname_suffix
+    - hostname_suffix.stdout
+    verbosity: 2
+  tags: hostname
+
+
+- name: "==============WARNING  kubernetes - hostname - change hostname  =============="
+  hostname:
+    name: k8s-work-{{hostname_suffix.stdout}}
+  tags: hostname
+
+- debug:
+    msg:
+    - " kubeadmin join as master "
+    - " kubeadm join 10.10.104.60:16443 --token qk9w96.l6pdiioqhj9ff2ky  --discovery-token-ca-cert-hash sha256:6c4ebf83619a569ab22f5aa508222d0f161b670c62940e0f7da677cbe8e9232d --control-plane "
+  tags: kubernetes,kubeadmin,master
+- debug:
+    msg:
+    - " kubeadmin join as woker "
+    - " kubeadm join 10.10.104.60:16443 --token qk9w96.l6pdiioqhj9ff2ky     --discovery-token-ca-cert-hash sha256:6c4ebf83619a569ab22f5aa508222d0f161b670c62940e0f7da677cbe8e9232d --v=9 "
+    - " ansible  -i /etc/ansible/hosts all -m ping "
+    - " ansible  -i /etc/ansible/hosts all -m shell -a 'kubeadm join 10.10.104.60:16443  --v=9 --token pc5wnp.uqk28mbdsd21afmm --discovery-token-ca-cert-hash sha256:6f4b3d0af817ee1d9ae67d3a858078d991588f1cc2dbdecbc14e6b4a8d8ae684 --v=9' "
+  tags: kubernetes,kubeadmin,work
+
+- name: "==============WARNING  kubernetes - core - kubeadm run as work=============="
+  shell: " kubeadm join 10.10.104.60:16443  --v=9 --token pc5wnp.uqk28mbdsd21afmm --discovery-token-ca-cert-hash sha256:6f4b3d0af817ee1d9ae67d3a858078d991588f1cc2dbdecbc14e6b4a8d8ae684 --v=9 "
+  tags: kubeadmin,work,run

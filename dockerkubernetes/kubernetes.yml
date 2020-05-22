@@ -1,0 +1,15 @@
+---
+- hosts: kubernetes-hosts
+  become: true
+  roles: 
+    - docker
+    - kubernetes
+  vars:
+     - mirror: '"https://l10nt4hq.mirror.aliyuncs.com","https://registry.docker-cn.com","https://docker.mirrors.ustc.edu.cn"'
+     - DOCKERHOME: '/data/docker'
+     - insecurereg: '"10.10.104.160:5000","10.10.104.160:80","10.10.104.55:5000","10.10.104.55:80"'
+     - isRegistryServer: false
+#ansible-playbook -i ../inventory.ini  kubernetes.yml   --tags kubernetes -vvv
+#isRegistryServer 设置私仓则设置为true
+## ansible-playbook jdk.yml --extra-var "insecurereg=192.168.0.188:5000"
+## ansible-playbook -i product_hosts jdk.yml -vvv --extra-var "insecurereg=192.168.0.188:5000"

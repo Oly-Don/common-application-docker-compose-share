@@ -1,0 +1,4 @@
+- name: "restart docker reload daemon-reload"
+  shell: " systemctl daemon-reload && systemctl restart docker "
+- name: "restart kubelet "
+  shell: "systemctl restart kubelet "

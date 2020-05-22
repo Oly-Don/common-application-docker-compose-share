@@ -1,0 +1,71 @@
+- name: "==============1.docker.repo=============="
+  copy:
+    src: "docker-ce.repo"
+    dest: "/etc/yum.repos.d/docker-ce.repo"
+  tags: yum
+- name: "==============2.docker dir=============="
+  file: path=/etc/docker state=directory
+  when: insecurereg is defined
+  ignore_errors: yes
+  tags: daemon
+- name: "==============3.cp docker.damon==========de===="
+  template:
+    backup: true
+    src: "daemon.json"
+    dest: "/etc/docker/daemon.json"
+  when: insecurereg is defined
+  tags: kubernetes,kubeadmin,docker,daemon
+- name: "==============4.yum install docker-ce==============="
+  yum:
+    name: ['yum-utils', 'device-mapper-persistent-data', 'lvm2', 'containerd.io-1.2.10', 'docker-ce-19.03.4', 'docker-ce-cli-19.03.4', 'epel-release']
+  tags: yum,ignor,installdocker
+#  containerd.io-1.2.10  docker-ce-19.03.4 docker-ce-cli-19.03.4
+#  yum list docker-ce --showduplicates|sort -r  && yum -y install docker-ce-18.06.3.ce
+
+- name: "==============5.stop firewalld=============="
+  service: name=firewalld.service enabled=no state=stopped
+- name: "==============6.stop iptables=============="
+  service: name=iptables.service enabled=no state=stopped
+  ignore_errors: yes
+
+#define isSetProxy = true run
+- name: "==============WARNING  set docker hroxy  S1 mkdir=============="
+  file: path=/etc/systemd/system/docker.service.d/ state=directory
+  when: isSetProxy
+  tags: daemon,ignor
+- name: "==============WARNING  set docker hroxy S2 copy conf=============="
+  template:
+    backup: true
+    src: "http-proxy.conf"
+    dest: "/etc/systemd/system/docker.service.d/http-proxy.conf"
+  notify:
+    - "restart docker reload daemon-reload"
+  when: isSetProxy
+  tags: daemon,ignor
+- name: "==============WARNING check docker hroxy=============="
+  shell: " systemctl show --property=Environment docker "
+  ignore_errors: yes
+  when: isSetProxy
+  tags: daemon,ignor
+
+- name: "==============7.start docker=============="
+  service: name=docker.service enabled=yes state=started
+  notify:
+    - "restart docker reload daemon-reload"
+  tags: kubernetes,kubeadmin,docker,daemon
+- name: "==============8.check docker version=============="
+  shell:  docker --version
+  tags: kubernetes,kubeadmin,docker,daemon
+
+- name: "==============9.yum install docker-compose==============="
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - docker-compose-1.18.0
+- name: "==============10.check docker-compose version=============="
+  shell:   docker-compose -version
+
+#- name: "==============7.modify docker.service if need =============="
+#  shell: "sed -i 's/ExecStart.+$/{{ExecStart}}/g' /usr/lib/systemd/system/docker.service && systemctl daemon-reload && systemctl restart docker 
+#  when: "isRegistryServer=='true'"
